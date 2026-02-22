@@ -1,18 +1,19 @@
 fn main() {
-    let mut cli_parser = clip::Clip::new("Clip");
+    let mut parser = clip::Clip::new("Clip");
     clip::create_arg("--file")
         .alias("-f")
         .add_param("file", -1, clip::Type::String)
         .help("specifies the input file")
-        .add(&mut cli_parser);
+        .add(&mut parser);
 
     clip::create_arg("--output")
         .alias("-o")
         .add_param("file", 1, clip::Type::String)
         .help("specifies the input file")
-        .add(&mut cli_parser);
+        .add(&mut parser);
 
-    dbg!(cli_parser.parse(&"-f foo.rs bar.rs -o out.o".to_string()));
+    dbg!(&parser);
+    dbg!(parser.parse(&"-f foo.rs bar.rs -o out.o".to_string()));
 
     // or
     // cli_parser.add(

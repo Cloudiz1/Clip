@@ -6,8 +6,9 @@ fn main() {
         .help("specifies the input file")
         .add(&mut cli_parser);
 
+    // cli_parser.debug();
+    dbg!(cli_parser.parse(&"-f foo.rs".to_string()));
     dbg!(cli_parser.parse_env());
-    cli_parser.parse("-f foo.rs".to_string());
 
     // or
     // cli_parser.add(

@@ -150,19 +150,37 @@ impl Clip {
         return Ok(inputs);
     }
 
-    fn parse_arg<'a>(&self, input: &mut impl Iterator<Item = &'a str>, arg: &Argument) -> Result<Input<'a>, Error> {
+    fn parse_arg<'a>(&self, input: &mut std::iter::Peekable<impl Iterator<Item = &'a str>>, arg: &Argument) -> Result<Input<'a>, Error> {
         let mut values: Vec<&str> = Vec::new();
         for param in &arg.params {
-            // TODO: my -1 inputs!
-            for _ in 0..param.ninputs {
-                let Some(input_param) = input.next() else {
-                    return Err(Error::ExpectedParameter { 
-                        argument: arg.name.to_owned(),
-                        parameter: param.name.to_owned() 
-                    });
-                };
+            match param.ninputs {
+                -1 => {
+                    while let Some(next) = input.peek() {
+                        if let Some(_) = self.aliases.get(next) {
+                            break;
+                        }
 
-                values.push(input_param);
+                        if let Some(_) = self.args.get(next) {
+                            break;
+                        }
+
+                        values.push(next);
+                        _ = input.next();
+                    }
+
+                }
+                _ => {
+                    for _ in 0..param.ninputs {
+                        let Some(input_param) = input.next() else {
+                            return Err(Error::ExpectedParameter { 
+                                argument: arg.name.to_owned(),
+                                parameter: param.name.to_owned() 
+                            });
+                        };
+
+                        values.push(input_param);
+                    }
+                }
             }
         }
 

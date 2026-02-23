@@ -1,6 +1,6 @@
 use crate::clip::Clip;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Type {
     Any,
     Integer,
@@ -24,26 +24,34 @@ impl std::fmt::Display for Type {
             Type::File => write!(f, "File"),
             Type::Set(vals) => {
                 let set = vals.join(", ");
-                return write!(f, "[{}]", set);
+                return write!(f, "Set::[{}]", set);
             },
             Type::Range {
                 lower,
                 upper
-            } => write!(f, "[{}-{}]", lower, upper),
+            } => write!(f, "Range::[{}-{}]", lower, upper),
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub(crate) enum Mode {
+    Flag,
+    Positional,
+    Variadic,
+}
+
+#[derive(Debug)]
 pub struct Argument {
     pub(crate) name: &'static str,
     pub(crate) aliases: Vec<&'static str>,
     pub(crate) params: Vec<Parameter>,
-    pub(crate) optional: bool,
     pub(crate) help: String,
+    pub(crate) arg_type: Type,
+    pub(crate) mode: Mode,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Parameter {
     pub(crate) name: &'static str,
     pub(crate) ninputs: i32,
@@ -51,6 +59,18 @@ pub(crate) struct Parameter {
 }
 
 impl Argument {
+    pub fn positional(mut self, t: Type) -> Self {
+        self.mode = Mode::Positional;
+        self.arg_type = t;
+        return self;
+    }
+
+    pub fn variadic(mut self, t: Type) -> Self {
+        self.mode = Mode::Variadic;
+        self.arg_type = t;
+        return self;
+    }
+
     pub fn alias(mut self, name: &'static str) -> Self {
         self.aliases.push(name);
         return self;
@@ -81,29 +101,21 @@ impl Argument {
     }
 
     pub fn add(self, parser: &mut Clip) {
-        if !self.optional {
-            parser.positional.push(self.name);
-        }
-
-        for alias in self.aliases.clone() {
+        self.aliases.iter().for_each(|alias| {
             parser.aliases.insert(alias, self.name);
-        }
+        });
 
         parser.args.insert(self.name, self);
     }
 }
 
 pub fn create_arg(name: &'static str) -> Argument {
-    let mut optional = false;
-    if name.contains("-") {
-        optional = true;
-    }
-
     return Argument {
         name,
         aliases: Vec::new(),
         params: Vec::new(),
-        optional,
         help: String::new(),
+        arg_type: Type::Any,
+        mode: Mode::Flag,
     }
 }

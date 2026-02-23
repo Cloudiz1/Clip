@@ -1,8 +1,7 @@
 run:
 	rustc --crate-type=lib src/lib.rs -o library.rlib
-	rustc main.rs --extern clip=library.rlib
-	./main --file test1.txt
+	rustc $(src) --extern clip=library.rlib
+	./$(src) --file test1.txt
 
-clean: 
-	rm main 
-	rm *.rlib
+test:
+	cargo test -- --test

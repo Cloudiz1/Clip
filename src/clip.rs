@@ -32,13 +32,12 @@ impl Clip {
         arg.add(self);
     }
 
-    pub fn parse_env(&mut self) 
-    -> Result<Vec<Input<'_>>, impl std::error::Error + use<'_>> {
+    pub fn parse_env(&mut self) -> Result<Vec<Input<'_>>, Error> {
         self.env_args = std::env::args().skip(1).collect::<Vec<String>>();
         return self.parse_vec(self.env_args.iter().map(|x| x.as_str()));
     }
 
-    pub fn parse<'a>(&mut self, input: &'a String) -> Result<Vec<Input<'a>>, impl std::error::Error + use<'a>> {
+    pub fn parse<'a>(&mut self, input: &'a String) -> Result<Vec<Input<'a>>, Error> {
         return self.parse_vec(input.split(" "));
     }
 }
@@ -47,7 +46,7 @@ impl Clip {
     fn parse_vec<'a>(
         &self, 
         input: impl Iterator<Item = &'a str>
-    ) -> Result<Vec<Input<'a>>, impl std::error::Error> {
+    ) -> Result<Vec<Input<'a>>, Error> {
         let mut inputs: Vec<Input> = Vec::new();
         let mut iter = input.peekable();
         while let Some(mut arg_input) = iter.next() {
@@ -86,7 +85,6 @@ impl Clip {
                         values.push(next);
                         _ = input.next();
                     }
-
                 }
                 _ => {
                     for _ in 0..param.ninputs {

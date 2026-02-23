@@ -2,12 +2,36 @@ use crate::clip::Clip;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Type {
+    Any,
     Integer,
     Number,
     String,
     File,
     Set(&'static [&'static str]),
-    Any,
+    Range {
+        lower: i32,
+        upper: i32,
+    },
+}
+
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Type::Any => write!(f, "Any"),
+            Type::Integer => write!(f, "Integer"),
+            Type::Number => write!(f, "Number"),
+            Type::String => write!(f, "String"),
+            Type::File => write!(f, "File"),
+            Type::Set(vals) => {
+                let set = vals.join(", ");
+                return write!(f, "[{}]", set);
+            },
+            Type::Range {
+                lower,
+                upper
+            } => write!(f, "[{}-{}]", lower, upper),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -39,6 +63,7 @@ impl Argument {
                 panic!("A parameter with variadic args must be the last parameter in an argument.");
             }
         }
+
         self.params.push(
             Parameter { 
                 name, 

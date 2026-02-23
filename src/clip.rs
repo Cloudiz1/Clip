@@ -32,18 +32,22 @@ impl Clip {
         arg.add(self);
     }
 
-    pub fn parse_env(&mut self) -> Result<Vec<Input<'_>>, Error> {
+    pub fn parse_env(&mut self) 
+    -> Result<Vec<Input<'_>>, impl std::error::Error + use<'_>> {
         self.env_args = std::env::args().skip(1).collect::<Vec<String>>();
         return self.parse_vec(self.env_args.iter().map(|x| x.as_str()));
     }
 
-    pub fn parse<'a>(&mut self, input: &'a String) -> Result<Vec<Input<'a>>, Error> {
+    pub fn parse<'a>(&mut self, input: &'a String) -> Result<Vec<Input<'a>>, impl std::error::Error + use<'a>> {
         return self.parse_vec(input.split(" "));
     }
 }
 
 impl Clip {
-    fn parse_vec<'a>(&self, input: impl Iterator<Item = &'a str>) -> Result<Vec<Input<'a>>, Error> {
+    fn parse_vec<'a>(
+        &self, 
+        input: impl Iterator<Item = &'a str>
+    ) -> Result<Vec<Input<'a>>, impl std::error::Error> {
         let mut inputs: Vec<Input> = Vec::new();
         let mut iter = input.peekable();
         while let Some(mut arg_input) = iter.next() {
@@ -61,7 +65,11 @@ impl Clip {
         return Ok(inputs);
     }
 
-    fn parse_arg<'a>(&self, input: &mut std::iter::Peekable<impl Iterator<Item = &'a str>>, arg: &Argument) -> Result<Input<'a>, Error> {
+    fn parse_arg<'a>( 
+        &self, 
+        input: &mut std::iter::Peekable<impl Iterator<Item = &'a str>>, 
+        arg: &Argument
+    ) -> Result<Input<'a>, Error> {
         let mut values: Vec<&str> = Vec::new();
         for param in &arg.params {
             match param.ninputs {
@@ -83,10 +91,7 @@ impl Clip {
                 _ => {
                     for _ in 0..param.ninputs {
                         let Some(input_param) = input.next() else {
-                            return Err(Error::ExpectedParameter { 
-                                argument: arg.name.to_owned(),
-                                parameter: param.name.to_owned() 
-                            });
+                            return Err( Error::ExpectedParameter( param.name.to_owned()));
                         };
 
                         values.push(input_param);

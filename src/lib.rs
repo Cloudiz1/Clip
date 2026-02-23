@@ -22,6 +22,7 @@ pub use crate::clip::Clip;
 pub use crate::arg::create_arg;
 pub use crate::arg::Type;
 pub use crate::clip::Input;
+pub use crate::error::Error;
 
 #[cfg(test)]
 mod tests {

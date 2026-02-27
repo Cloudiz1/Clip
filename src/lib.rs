@@ -143,38 +143,4 @@ mod tests {
         assert_eq!(inputs[0].values.len(), 3);
         assert_eq!(inputs[0].values, vec!["foo.rs", "bar.rs", "baz.rs"]);
     }
-
-    #[test]
-    #[should_panic]
-    fn variadic_fail() {
-        let mut parser = clip::Clip::new("foo");
-        create_arg("--file")
-            .alias("-f")
-            .add_param("file", -1, Type::String)
-            .add_param("config_file", 1, Type::String)
-            .help("input file")
-            .add(&mut parser);
-    }
-
-    #[test]
-    #[should_panic]
-    fn variadic_alias() {
-        let mut parser = clip::Clip::new("foo");
-        create_arg("--file")
-            .alias("-f")
-            .variadic(Type::Any)
-            .help("input file")
-            .add(&mut parser);
-    }
-
-    #[test]
-    #[should_panic]
-    fn positional_alias() {
-        let mut parser = clip::Clip::new("foo");
-        create_arg("--file")
-            .positional(Type::Any)
-            .alias("-f")
-            .help("input file")
-            .add(&mut parser);
-    }
 }

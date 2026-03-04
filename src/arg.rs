@@ -124,15 +124,8 @@ impl Argument {
             }
         }
 
-        let mut variadic: Vec<&Argument> = Vec::new();
-        parser.args.values().for_each(|arg| {
-            if let Mode::Variadic = arg.mode {
-                variadic.push(arg);
-            }
-        });
-
-        if variadic.len() > 1 {
-            panic!("Expected 0 or 1 variadic arguments, found {}", variadic.len());
+        if parser.variadic.iter().len() > 1 {
+            panic!("there may not be two variadic arguments");
         }
     }
 
@@ -143,6 +136,12 @@ impl Argument {
         self.aliases.iter().for_each(|alias| {
             parser.aliases.insert(alias, self.name);
         });
+
+        match self.mode {
+            Mode::Variadic => parser.variadic = Some(self.name),
+            Mode::Positional => parser.positional.push(self.name),
+            _ => {}
+        }
 
         parser.args.insert(self.name, self);
     }

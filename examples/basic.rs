@@ -27,8 +27,5 @@ fn main() {
         std::process::exit(1);
     });
 
-    /* or
-     * parser.parse_env()
-     * parser.parse(&input);
-     */
+    dbg!(res);
 }

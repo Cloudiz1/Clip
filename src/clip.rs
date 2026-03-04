@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use crate::arg::Argument;
+use crate::arg::Mode;
 use crate::error::Error;
 
 #[derive(Debug, Clone)]
@@ -12,9 +13,9 @@ pub struct Input<'a> {
 pub struct Clip {
     pub(crate) program_name: &'static str,
     pub(crate) positional: Vec<&'static str>,
+    pub(crate) variadic: Option<&'static str>,
     pub(crate) aliases: HashMap<&'static str, &'static str>,
     pub(crate) args: HashMap<&'static str, Argument>,
-    pub(crate) env_args: Vec<String>,
 }
 
 impl Clip {
@@ -22,19 +23,14 @@ impl Clip {
         Self {
             program_name,
             positional: Vec::new(),
+            variadic: None,
             aliases: HashMap::new(),
             args: HashMap::new(),
-            env_args: Vec::new(),
         }
     }
 
     pub fn add(&mut self, arg: Argument) {
         arg.add(self);
-    }
-
-    pub fn parse_env(&mut self) -> Result<Vec<Input<'_>>, Error> {
-        self.env_args = std::env::args().skip(1).collect::<Vec<String>>();
-        return self.parse_vec(self.env_args.iter().map(|x| x.as_str()));
     }
 
     pub fn parse<'a>(&mut self, input: &'a String) -> Result<Vec<Input<'a>>, Error> {
@@ -49,16 +45,31 @@ impl Clip {
     ) -> Result<Vec<Input<'a>>, Error> {
         let mut inputs: Vec<Input> = Vec::new();
         let mut iter = input.peekable();
+
+        if let Some(variadic) = self.variadic {
+            inputs.push( Input{
+                name: variadic,
+                values: Vec::new(),
+            })
+        }
+
         while let Some(mut arg_input) = iter.next() {
             if let Some(alias) = self.aliases.get(arg_input) {
                 arg_input = alias;
             }
 
-            let Some(arg) = self.args.get(arg_input) else {
-                return Err(Error::UnknownArgument(arg_input.to_string()));
+            if let Some(arg) = self.args.get(arg_input) {
+                inputs.push(self.parse_arg(&mut iter, arg)?);
+                continue;
             };
 
-            inputs.push(self.parse_arg(&mut iter, arg)?);
+            if let Some(_) = self.variadic {
+                // TODO: calculate index off of n positional args
+                inputs[0].values.push(arg_input);
+                continue;
+            }
+
+            return Err(Error::UnknownArgument(arg_input.to_string()));
         };
 
         return Ok(inputs);
